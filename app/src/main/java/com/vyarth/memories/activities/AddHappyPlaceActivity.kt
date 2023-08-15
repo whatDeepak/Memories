@@ -1,4 +1,4 @@
-package com.vyarth.memories
+package com.vyarth.memories.activities
 
 import android.Manifest
 import android.app.Activity
@@ -15,9 +15,9 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.Toolbar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatImageView
@@ -26,6 +26,9 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.vyarth.memories.R
+import com.vyarth.memories.database.DatabaseHandler
+import com.vyarth.memories.models.MemoriesModel
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -50,6 +53,14 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
     */
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
 
+    private var saveImageToInternalStorage: Uri? = null
+
+    private var mLatitude: Double = 0.0 // A variable which will hold the latitude value.
+    private var mLongitude: Double = 0.0 // A variable which will hold the longitude value.
+
+    private var mMemoriesDetails: MemoriesModel? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_happy_place)
@@ -70,17 +81,25 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                 cal.set(Calendar.YEAR, year)
                 cal.set(Calendar.MONTH, monthOfYear)
                 cal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-
                 updateDateInView()
-
             }
+        updateDateInView()
         val etDate: AppCompatEditText =findViewById<AppCompatEditText>(R.id.et_date)
         etDate.setOnClickListener(this)
         val tvAddImage =findViewById<TextView>(R.id.tv_add_image)
         tvAddImage.setOnClickListener(this)
+        val btnSave =findViewById<Button>(R.id.btn_save)
+        btnSave.setOnClickListener(this)
+        var etTitle =findViewById<AppCompatEditText>(R.id.et_title)
+        var etDescription =findViewById<AppCompatEditText>(R.id.et_description)
+        var etLocation =findViewById<AppCompatEditText>(R.id.et_location)
     }
 
     override fun onClick(v: View?) {
+        val etDate: AppCompatEditText =findViewById<AppCompatEditText>(R.id.et_date)
+        val etTitle =findViewById<AppCompatEditText>(R.id.et_title)
+        val etDescription =findViewById<AppCompatEditText>(R.id.et_description)
+        val etLocation =findViewById<AppCompatEditText>(R.id.et_location)
         when (v!!.id) {
             R.id.et_date -> {
                 DatePickerDialog(
@@ -108,6 +127,59 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }
                 pictureDialog.show()
+            }
+
+            R.id.btn_save -> {
+
+                when {
+                    etTitle.text.isNullOrEmpty() -> {
+                        Toast.makeText(this, "Please enter title", Toast.LENGTH_SHORT).show()
+                    }
+                    etDescription.text.isNullOrEmpty() -> {
+                        Toast.makeText(this, "Please enter description", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                    etLocation.text.isNullOrEmpty() -> {
+                        Toast.makeText(this, "Please select location", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                    saveImageToInternalStorage == null -> {
+                        Toast.makeText(this, "Please add image", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+
+                        // Assigning all the values to data model class.
+                        val memoriesModel = MemoriesModel(
+                            if (mMemoriesDetails == null) 0 else mMemoriesDetails!!.id,
+                            etTitle.text.toString(),
+                            saveImageToInternalStorage.toString(),
+                            etDescription.text.toString(),
+                            etDate.text.toString(),
+                            etLocation.text.toString(),
+                            mLatitude,
+                            mLongitude
+                        )
+
+                        // Here we initialize the database handler class.
+                        val dbHandler = DatabaseHandler(this)
+
+                        if (mMemoriesDetails == null) {
+                            val addMemories = dbHandler.addmemories(memoriesModel)
+
+                            if (addMemories > 0) {
+                                setResult(Activity.RESULT_OK);
+                                finish()//finishing activity
+                            }
+                        } else {
+                            val updateMemories = dbHandler.updateMemories(memoriesModel)
+
+                            if (updateMemories > 0) {
+                                setResult(Activity.RESULT_OK);
+                                finish()//finishing activity
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -149,7 +221,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                         val selectedImageBitmap =
                             MediaStore.Images.Media.getBitmap(this.contentResolver, contentURI)
 
-                        val saveImageToInternalStorage =
+                        saveImageToInternalStorage =
                             saveImageToInternalStorage(selectedImageBitmap)
                         Log.e("Saved Image : ", "Path :: $saveImageToInternalStorage")
 
