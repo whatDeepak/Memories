@@ -16,6 +16,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -39,8 +40,6 @@ import java.util.Locale
 import java.util.UUID
 
 class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
-
-
 
     /**
      * An variable to get an instance calendar using the default time zone and locale.
@@ -73,6 +72,11 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
             onBackPressed()
         }
 
+        if (intent.hasExtra(MainActivity.EXTRA_PLACE_DETAILS)) {
+            mMemoriesDetails =
+                intent.getParcelableExtra(MainActivity.EXTRA_PLACE_DETAILS) as? MemoriesModel
+        }
+
 
         // https://www.tutorialkart.com/kotlin-android/android-datepicker-kotlin-example/
         // create an OnDateSetListener
@@ -84,15 +88,35 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                 updateDateInView()
             }
         updateDateInView()
+
         val etDate: AppCompatEditText =findViewById<AppCompatEditText>(R.id.et_date)
         etDate.setOnClickListener(this)
         val tvAddImage =findViewById<TextView>(R.id.tv_add_image)
         tvAddImage.setOnClickListener(this)
         val btnSave =findViewById<Button>(R.id.btn_save)
         btnSave.setOnClickListener(this)
-        var etTitle =findViewById<AppCompatEditText>(R.id.et_title)
-        var etDescription =findViewById<AppCompatEditText>(R.id.et_description)
-        var etLocation =findViewById<AppCompatEditText>(R.id.et_location)
+        val etTitle =findViewById<AppCompatEditText>(R.id.et_title)
+        val etDescription =findViewById<AppCompatEditText>(R.id.et_description)
+        val etLocation =findViewById<AppCompatEditText>(R.id.et_location)
+        val ivPlaceImage=findViewById<ImageView>(R.id.iv_place_image)
+
+        if (mMemoriesDetails != null) {
+            supportActionBar?.title = "Edit Happy Place"
+
+            etTitle.setText(mMemoriesDetails!!.title)
+            etDescription.setText(mMemoriesDetails!!.description)
+            etDate.setText(mMemoriesDetails!!.date)
+            etLocation.setText(mMemoriesDetails!!.location)
+            mLatitude = mMemoriesDetails!!.latitude
+            mLongitude = mMemoriesDetails!!.longitude
+
+            saveImageToInternalStorage = Uri.parse(mMemoriesDetails!!.image)
+
+            ivPlaceImage.setImageURI(saveImageToInternalStorage)
+
+            btnSave.text = "UPDATE"
+        }
+
     }
 
     override fun onClick(v: View?) {
