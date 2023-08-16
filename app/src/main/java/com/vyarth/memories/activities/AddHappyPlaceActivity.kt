@@ -22,6 +22,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.room.vo.Field
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -78,6 +79,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
         }
 
 
+
         // https://www.tutorialkart.com/kotlin-android/android-datepicker-kotlin-example/
         // create an OnDateSetListener
         dateSetListener =
@@ -95,9 +97,13 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
         tvAddImage.setOnClickListener(this)
         val btnSave =findViewById<Button>(R.id.btn_save)
         btnSave.setOnClickListener(this)
+        val etLocation =findViewById<AppCompatEditText>(R.id.et_location)
+        etLocation.setOnClickListener(this)
+
+
         val etTitle =findViewById<AppCompatEditText>(R.id.et_title)
         val etDescription =findViewById<AppCompatEditText>(R.id.et_description)
-        val etLocation =findViewById<AppCompatEditText>(R.id.et_location)
+
         val ivPlaceImage=findViewById<ImageView>(R.id.iv_place_image)
 
         if (mMemoriesDetails != null) {
@@ -205,6 +211,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }
             }
+
         }
     }
 
