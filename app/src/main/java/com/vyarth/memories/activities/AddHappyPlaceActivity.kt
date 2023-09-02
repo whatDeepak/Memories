@@ -122,7 +122,6 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
 
             btnSave.text = "UPDATE"
         }
-
     }
 
     override fun onClick(v: View?) {
